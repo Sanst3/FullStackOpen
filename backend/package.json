@@ -1,0 +1,28 @@
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "description": "The repository for my work for the FullStackOpen Course",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sanst3/FullStackOpen.git"
+  },
+  "author": "Jerry Xiong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Sanst3/FullStackOpen/issues"
+  },
+  "homepage": "https://github.com/Sanst3/FullStackOpen#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
