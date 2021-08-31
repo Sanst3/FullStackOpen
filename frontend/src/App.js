@@ -45,7 +45,7 @@ const App = () => {
 
   useEffect(() => {
     axios
-    .get(`${baseUrl}/api/persons`)
+    .get(`/api/persons`)
     .then(response => {
       setPersons(response.data)
     })
