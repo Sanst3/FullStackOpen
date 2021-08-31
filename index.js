@@ -5,6 +5,7 @@ const mongoose = require('mongoose')
 
 const app = express()
 app.use(express.json())
+app.use(express.static('build'))
 app.use(cors())
 morgan.token('body', (request, response) => JSON.stringify(response.locals.person))
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
