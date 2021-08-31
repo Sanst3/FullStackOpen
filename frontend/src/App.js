@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import axios from 'axios'
+import React, { useState, useEffect } from 'react'
 
 const Person = ({ person }) => {
   return (<p>{person.name} {person.number}</p>)
@@ -39,6 +40,14 @@ const App = () => {
   const handleQueryChange = (e) => {
     setNewQuery(e.target.value)
   }
+
+  useEffect(() => {
+    axios
+    .get(`/api/persons`)
+    .then(response => {
+      setPersons(response.data)
+    })
+  }, [])
 
 
   return (
