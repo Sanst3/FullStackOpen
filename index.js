@@ -1,12 +1,27 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-const app = express()
+const mongoose = require('mongoose')
 
+const app = express()
 app.use(express.json())
 app.use(cors())
 morgan.token('body', (request, response) => JSON.stringify(response.locals.person))
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
+
+const password = "fullstackpwd"
+
+const url =
+  `mongodb+srv://fullstack:${password}@cluster0.3lts9.mongodb.net/phonebook-app?retryWrites=true&w=majority`
+
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
+
+const personSchema = new mongoose.Schema({
+  name: String,
+  number: String,
+})
+
+const Person = mongoose.model('Person', personSchema)
 
 let persons = [
   { 
@@ -32,7 +47,9 @@ let persons = [
 ]
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then(notes => {
+    response.json(notes)
+  })
 })
 
 app.get('/api/info', (request, response) => {
