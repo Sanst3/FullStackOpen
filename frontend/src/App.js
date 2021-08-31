@@ -1,6 +1,8 @@
 import axios from 'axios'
 import React, { useState, useEffect } from 'react'
 
+const baseUrl = window.location.origin
+
 const Person = ({ person }) => {
   return (<p>{person.name} {person.number}</p>)
 }
@@ -43,7 +45,7 @@ const App = () => {
 
   useEffect(() => {
     axios
-    .get(`/api/persons`)
+    .get(`${baseUrl}/api/persons`)
     .then(response => {
       setPersons(response.data)
     })
