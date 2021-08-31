@@ -43,13 +43,13 @@ const App = () => {
     setNewQuery(e.target.value)
   }
 
-  useEffect(() => {
-    axios
-    .get(`/api/persons`)
-    .then(response => {
-      setPersons(response.data)
-    })
-  }, [])
+  // useEffect(() => {
+  //   axios
+  //   .get(`/api/persons`)
+  //   .then(response => {
+  //     setPersons(response.data)
+  //   })
+  // }, [])
 
 
   return (
