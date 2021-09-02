@@ -1,18 +1,15 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-const mongoose = require('mongoose')
 require('dotenv').config()
 const Person = require('./models/note')
 
 const app = express()
-app.use(express.json())
 app.use(express.static('build'))
+app.use(express.json())
 app.use(cors())
 morgan.token('body', (request, response) => JSON.stringify(response.locals.person))
 app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
-
-const toObjectId = id => mongoose.Types.ObjectId(id)
 
 app.get('/api/persons', (request, response) => {
   Person.find({}).then(persons => {
@@ -27,45 +24,72 @@ app.get('/api/info', (request, response) => {
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  Person.findById(toObjectId(id)).then(person => {
-    console.log("here")
-    response.json(person)
-  })
+  Person.findById(id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(err => next(err))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  Person.findByIdAndDelete(toObjectId(id)).then(result => {
-    console.log(result)
-    response.status(204).end()
-  })
+  Person.findByIdAndDelete(id)
+    .then(result => {
+      console.log(result)
+      response.status(204).end()
+    })
+    .catch(err => next(err))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body
-  if (!body.hasOwnProperty('name') || !body.hasOwnProperty('number')) {
+  if (!Object.prototype.hasOwnProperty.call(body, 'name') ||
+  !Object.prototype.hasOwnProperty.call(body, 'number')) {
     return response.status(400).json({
       error: 'missing properties'
     })
   }
-  
-  // TODO check duplicates
-  // Person.find({name: body.name}).then(response => {
 
-  // })
-
-  const person = new Person({
+  const personObj = {
     name: body.name,
     number: body.number
-  })
+  }
+  const person = new Person(personObj)
 
-  person.save().then(savedPerson => {
-    response.json(savedPerson)
-  })
-  
+  person
+    .save()
+    .then(savedPerson => {
+      console.log('SavedPerson = ' + savedPerson)
+      response.json(savedPerson)
+    })
+    .catch(err => next(err))
 })
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (err, req, res, next) => {
+  console.error(err.message)
+
+  if (err.name === 'CastError') {
+    return res.status(400).json({ error: 'malformatted id' })
+  } else if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: err.message })
+  }
+
+  next(err)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

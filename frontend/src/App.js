@@ -1,8 +1,6 @@
 import axios from 'axios'
 import React, { useState, useEffect } from 'react'
 
-const baseUrl = window.location.origin
-
 const Person = ({ person }) => {
   return (<p>{person.name} {person.number}</p>)
 }
@@ -15,19 +13,33 @@ const Persons = ({ persons }) => {
   )
 }
 
+const Error = ({ error }) => {
+  if (error) {
+    return (
+      <div border-color='red'>{error}</div>
+    )
+  } else {
+    return null
+  }
+}
+
 const App = () => {
   const [ persons, setPersons ] = useState([]) 
   const [ newName, setNewName ] = useState('')
   const [ newNo, setNewNo ] = useState('')
   const [ query, setNewQuery ] = useState('')
+  const [ error, setError ] = useState('')
 
   const addName = (e) => {
     e.preventDefault()
-    if (persons.some((person) => person.name === newName)) {
-      window.alert(`${newName} is already added to phonebook`)
-    } else {
-      setPersons(persons.concat({ name: newName, number: newNo }))
-    }
+    axios
+      .post('/api/persons', { name: newName, number: newNo })
+      .then((res) => {
+        console.log("RES: ", res)
+        refreshPersons()
+      })
+      .catch(err => setError(err.response.data.error))
+
   }
 
   const handleNameChange = (e) => {
@@ -43,18 +55,22 @@ const App = () => {
     setNewQuery(e.target.value)
   }
 
-  // useEffect(() => {
-  //   axios
-  //   .get(`/api/persons`)
-  //   .then(response => {
-  //     setPersons(response.data)
-  //   })
-  // }, [])
+  const refreshPersons = () => {
+    axios
+      .get('/api/persons')
+      .then(res => setPersons(res.data))
+      .catch(err => console.log("ERROR IN REFRESH: " + err))
+  }
+
+  useEffect(() => {
+    refreshPersons()
+  }, [])
 
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Error error={error}/>
       <div>
         filter shown with <input value={query} onChange={handleQueryChange}/>
       </div>
