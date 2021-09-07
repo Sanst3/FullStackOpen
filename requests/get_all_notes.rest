@@ -1,22 +1,36 @@
-GET http://localhost:3001/api/persons
-
-###
-
-GET http://localhost:3001/api/info
-
-###
-
-GET http://localhost:3001/api/persons/612dc2a363ac312b358d8e42
-
-###
-POST http://localhost:3001/api/persons
+POST http://localhost:3001/api/userds/
 Content-Type: application/json
 
-{ 
-    "name": "Test5",
-    "number": "124567"
+{
+    "username": "admin2",
+    "name": "adminname",
+    "password": "adminpw"
 }
 
 ###
 
-DELETE http://localhost:3001/api/persons/612dc2a963ac312b358d8e44
+POST http://localhost:3001/api/users/login
+Content-Type: application/json
+
+{
+    "username": "admin2",
+    "password": "adminpw"
+}
+###
+
+POST http://localhost:3001/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluMiIsImlkIjoiNjEzNTY5Y2Y1ZGUwMThiNzY3ZGViYmRjIiwiaWF0IjoxNjMwODkwNDQ5fQ.VX4TGLsPCPtn2YfcJ_vRMz8nIK5z_QeQZDReRuf4wAk
+
+{
+    "title": "title43446",
+    "url": "titledfsdfsdfdfgdfgdf1.com",
+    "likes": 11110
+}
+
+###
+GET http://localhost:3001/api/users/
+
+###
+
+GET http://localhost:3001/api/blogs
