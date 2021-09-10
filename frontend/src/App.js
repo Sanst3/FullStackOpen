@@ -1,95 +1,94 @@
-import axios from 'axios'
 import React, { useState, useEffect } from 'react'
+import { Blog, CreateBlog } from './components/Blog'
+import { Login, Logout } from './components/Login'
+import blogService from './services/blogs'
+import loginService from './services/login'
 
-const Person = ({ person }) => {
-  return (<p>{person.name} {person.number}</p>)
+const getLocalUser = () => {
+  return JSON.parse(window.localStorage.getItem('loggedInUser'))
 }
 
-const Persons = ({ persons }) => {
-  return (
-    <div>
-      {persons.map((p) => (<Person key={p.name} person={p}/>))}
-    </div>
-  )
-}
-
-const Error = ({ error }) => {
-  if (error) {
-    return (
-      <div border-color='red'>{error}</div>
-    )
-  } else {
-    return null
-  }
+const setLocalUser = (newUser, setUser) => {
+  window.localStorage.setItem('loggedInUser', newUser)
+  setUser(newUser)
 }
 
 const App = () => {
-  const [ persons, setPersons ] = useState([]) 
-  const [ newName, setNewName ] = useState('')
-  const [ newNo, setNewNo ] = useState('')
-  const [ query, setNewQuery ] = useState('')
-  const [ error, setError ] = useState('')
+  const [blogs, setBlogs] = useState([])
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [user, setUser] = useState(null)
+  const [formState, setFormState] = useState({title: '', author: '', url: ''})
+  const [notif, setNotif] = useState('')
 
-  const addName = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    axios
-      .post('/api/persons', { name: newName, number: newNo })
-      .then((res) => {
-        console.log("RES: ", res)
-        refreshPersons()
+    try {
+      const user = await loginService.login({
+        username, password
       })
-      .catch(err => setError(err.response.data.error))
 
+      setLocalUser(JSON.stringify(user), setUser)
+      blogService.setToken(user.token)
+      setUsername('')
+      setPassword('')
+    } catch (e) {
+      setNotif('Wrong username or password')
+      console.log('GOTTEM', e)
+    }
   }
 
-  const handleNameChange = (e) => {
-    console.log(e.target.value)
-    setNewName(e.target.value)
-  }
-
-  const handleNoChange = (e) => {
-    setNewNo(e.target.value)
-  }
-
-  const handleQueryChange = (e) => {
-    setNewQuery(e.target.value)
-  }
-
-  const refreshPersons = () => {
-    axios
-      .get('/api/persons')
-      .then(res => setPersons(res.data))
-      .catch(err => console.log("ERROR IN REFRESH: " + err))
+  const handlePost = async (e) => {
+    e.preventDefault()
+    try {
+      const result = await blogService.postBlog({
+        title: formState.title,
+        author: formState.author,
+        url: formState.url
+      })
+      setBlogs(blogs.concat({
+        author: result.author,
+        title: result.title,
+        url: result.url,
+        id: result.id
+      }))
+      setNotif(`A new blog ${result.title} added`)
+    } catch (e) {
+      console.error("ERROR", e.body)
+    }
   }
 
   useEffect(() => {
-    refreshPersons()
+    if (getLocalUser()) {
+      const localUser = getLocalUser()
+      setUser(localUser)
+      blogService.setToken(localUser.token)
+    }
+
+    const getBlogs = async () => {
+      const result = await blogService.getAll()
+      setBlogs( result )
+    }
+    getBlogs()
   }, [])
 
-
-  return (
+  return user ? (
     <div>
-      <h2>Phonebook</h2>
-      <Error error={error}/>
-      <div>
-        filter shown with <input value={query} onChange={handleQueryChange}/>
-      </div>
-      <div>debug: {newName}</div>
-      <form onSubmit={addName}>
-        <div>
-          name: <input value={newName} onChange={handleNameChange}/>
-        </div>
-        <div>
-          number: <input value={newNo} onChange={handleNoChange}/>
-        </div>
-        <div>
-          <button type="submit">add</button>
-        </div>
-      </form>
-      <h2>Numbers</h2>
-      <Persons persons={persons.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))} />
+      <h1>{notif}</h1>
+      <h2>blogs</h2>
+      <div><p>{getLocalUser().name} logged in</p> <Logout/></div>
+      {blogs.map(blog => 
+        <Blog key={blog.id} blog={blog} />
+      )}
+    <CreateBlog formState={formState} setFormState={setFormState} handlePost={handlePost}/>
     </div>
-  )
+  ) :
+  <div>
+    <h1>{notif}</h1>
+    <Login username={username} password={password} setUsername={setUsername} setPassword={setPassword} handleLogin={handleLogin}/>
+  </div>
+  
+
 }
 
 export default App
