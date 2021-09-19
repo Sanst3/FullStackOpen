@@ -6,7 +6,7 @@ const config = require('../utils/config')
 const logger = require('../utils/logger')
 
 blogRouter.get('/', async (req, res) => {
-  const blogs = await Blog.find({}).populate('author')
+  const blogs = await Blog.find({}).populate('user')
 
   res.json(blogs)
 })
@@ -37,6 +37,32 @@ blogRouter.post('/', async (req, res) => {
   await user.save()
 
   res.status(201).json(savedBlog)
+})
+
+blogRouter.put('/:id', async (req, res) => {
+  const id = req.params.id
+  const body = req.body
+
+  try{
+    const blog = await Blog.findByIdAndUpdate(id, body, { new: false })
+    res.status(201).json(blog)
+  } catch (e) {
+    console.error(e)
+    res.status(400).end()
+  }
+})
+
+blogRouter.delete('/:id', async (req, res) => {
+  const id = req.params.id
+  console.log('here')
+  try {
+    await Blog.findByIdAndDelete(id)
+    res.status(201).end()
+  }
+  catch (e) {
+    console.error(e)
+    res.status(400).end()
+  }
 })
 
 module.exports = blogRouter

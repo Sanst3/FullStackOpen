@@ -1,24 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { Blog, CreateBlog } from './components/Blog'
+import { Blogs, CreateBlog } from './components/Blog'
 import { Login, Logout } from './components/Login'
+import Toggleable from './components/Toggleable'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import localUserUtil from './utils/localUser'
 
-const getLocalUser = () => {
-  return JSON.parse(window.localStorage.getItem('loggedInUser'))
-}
 
-const setLocalUser = (newUser, setUser) => {
-  window.localStorage.setItem('loggedInUser', newUser)
-  setUser(newUser)
-}
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
-  const [formState, setFormState] = useState({title: '', author: '', url: ''})
+  const [formState, setFormState] = useState({ title: '', author: '', url: '' })
   const [notif, setNotif] = useState('')
 
   const handleLogin = async (e) => {
@@ -28,7 +23,7 @@ const App = () => {
         username, password
       })
 
-      setLocalUser(JSON.stringify(user), setUser)
+      localUserUtil.set(JSON.stringify(user), setUser)
       blogService.setToken(user.token)
       setUsername('')
       setPassword('')
@@ -44,51 +39,45 @@ const App = () => {
       const result = await blogService.postBlog({
         title: formState.title,
         author: formState.author,
-        url: formState.url
+        url: formState.url,
+        user: localUserUtil.get().id
       })
-      setBlogs(blogs.concat({
-        author: result.author,
-        title: result.title,
-        url: result.url,
-        id: result.id
-      }))
       setNotif(`A new blog ${result.title} added`)
     } catch (e) {
-      console.error("ERROR", e.body)
+      console.error('error', e.body)
     }
   }
 
   useEffect(() => {
-    if (getLocalUser()) {
-      const localUser = getLocalUser()
+    if (localUserUtil.get()) {
+      const localUser = localUserUtil.get()
       setUser(localUser)
       blogService.setToken(localUser.token)
     }
 
     const getBlogs = async () => {
       const result = await blogService.getAll()
-      setBlogs( result )
+      setBlogs(result.sort((a, b) => a.likes - b.likes))
     }
     getBlogs()
   }, [])
 
-  return user ? (
-    <div>
+  return user ?
+    (
+      <div>
+        <h1>{notif}</h1>
+        <h2>blogs</h2>
+        <div><p>{localUserUtil.get().name} logged in</p> <Logout/></div>
+        <Blogs blogs={blogs} username={user.username} />
+        <Toggleable buttonLabel='create new blog'>
+          <CreateBlog formState={formState} setFormState={setFormState} handlePost={handlePost}/>
+        </Toggleable>
+      </div>
+    ) :
+    (<div>
       <h1>{notif}</h1>
-      <h2>blogs</h2>
-      <div><p>{getLocalUser().name} logged in</p> <Logout/></div>
-      {blogs.map(blog => 
-        <Blog key={blog.id} blog={blog} />
-      )}
-    <CreateBlog formState={formState} setFormState={setFormState} handlePost={handlePost}/>
-    </div>
-  ) :
-  <div>
-    <h1>{notif}</h1>
-    <Login username={username} password={password} setUsername={setUsername} setPassword={setPassword} handleLogin={handleLogin}/>
-  </div>
-  
-
+      <Login username={username} password={password} setUsername={setUsername} setPassword={setPassword} handleLogin={handleLogin}/>
+    </div>)
 }
 
 export default App
