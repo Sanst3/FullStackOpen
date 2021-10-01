@@ -10,7 +10,6 @@ const Blog = ({ blog, username, likeHandler }) => {
     marginBottom: 5
   }
 
-  console.log(blog)
 
   const [visible, setVisible] = useState(false)
 

@@ -1,7 +1,7 @@
 import React from 'react'
 import '@testing-library/jest-dom/extend-expect'
 import { render, fireEvent } from '@testing-library/react'
-import { Blog } from './Blog'
+import { Blog, CreateBlog } from './Blog'
 
 describe('<Blog />', () => {
   let component
@@ -46,7 +46,46 @@ describe('<Blog />', () => {
     expect(mockHandler.mock.calls).toHaveLength(2)
   })
 
+})
+
+describe('<CreateBlog />', () => {
+  let component
+  let mockHandler
+  let formState
+  let setFormState
+
   test('form calls event handler and it has the right details', () => {
-    //TODO
+    mockHandler = jest.fn()
+    formState = {
+      author: 'test author',
+      title: 'test title',
+      url: 'test url'
+    }
+    setFormState = jest.fn()
+
+    component = render(
+      <CreateBlog formState={formState} setFormState={setFormState} handlePost={mockHandler}  />
+    )
+
+    const author = component.container.querySelector('#author')
+    const title = component.container.querySelector('#title')
+    const url = component.container.querySelector('#url')
+    const form = component.container.querySelector('form')
+
+    fireEvent.change(author, {
+      target: { value: 'test author' }
+    })
+
+    fireEvent.change(title, {
+      target: { value: 'test title' }
+    })
+
+    fireEvent.change(url, {
+      target: { value: 'test url' }
+    })
+
+    fireEvent.submit(form)
+    console.log(mockHandler.mock.calls[0][0].content)
+    expect(mockHandler.mock.calls).toHaveLength(1)
   })
 })
